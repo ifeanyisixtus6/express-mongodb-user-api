@@ -1,8 +1,9 @@
-const express = require('express');
-const database = require("./database/database")
-const dotenv = require('dotenv').config();
-const userRoutes = require('./route/userRoute');
+import express from 'express';
+import database from "./database/database.js"
+import dotenv from'dotenv';
+import userRoutes from './route/userRoute.js';
 
+dotenv.config();
 database();
 
 const app = express();
@@ -16,4 +17,4 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = app;
+export default  app;
