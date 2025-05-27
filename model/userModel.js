@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+import bcrypt from "bcrypt"
 
-const userSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true
@@ -14,14 +15,29 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  age: {
-    type: Number
+password: {
+    type: String
   }
 }, {
   timestamps: true
 });
 
+//middleware to hash password before saving
+UserSchema.pre("save", async function (next) {
+  if(!this.isModified("password"))  return next();
+  
+  try{
+    const hashedPassword = await bcrypt.hash(this.password, 10)
+    this.password = hashedPassword;
+    console.log("hashedPassword",this.password)
+    next(); 
+  } catch(error){
+    next(error)
+  }
+})
 
-const User = mongoose.model('User', userSchema);
+
+
+const User = mongoose.model('User', UserSchema);
 
 export default User
