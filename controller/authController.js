@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken"
 
 export const signUp = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password} = req.body;
+    const { firstName, lastName, email, password, role} = req.body;
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ error: "All fields are mandatory" });
     }
@@ -17,7 +17,7 @@ export const signUp = async (req, res, next) => {
     const user = await User.create({ firstName, lastName, email, password});
 
     if(user){
-    res.status(201).json({ message: `User created successfully`, firstName: user.firstName, lastName: user.lastName, email: user.email}) ;
+    res.status(201).json({ message: `User created successfully`, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role}) ;
     
   } else{
     res.status(404); throw new Error("User data is not valid")
@@ -60,6 +60,7 @@ export const login = async (req, res, next) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          role: user.role
         },
       });
     } else {
