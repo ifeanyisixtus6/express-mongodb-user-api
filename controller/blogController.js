@@ -61,7 +61,7 @@ export const updateBlogById = async (req, res) => {
     }
 
     // Check if logged-in user is the author
-    if (blog.author.toString() !== req.user.id) {
+    if (blog.author.toString() !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({ message: "Forbidden: You are not the author" });
     }
 
@@ -88,7 +88,7 @@ export const deleteBlogById = async (req, res) => {
     }
 
     // Check if logged-in user is the author
-    if (blog.author.toString() !== req.user.id) {
+    if (blog.author.toString() !== req.user.id && re.user.role !== "admin") {
       return res.status(403).json({ message: "Forbidden: You are not the author" });
     }
 

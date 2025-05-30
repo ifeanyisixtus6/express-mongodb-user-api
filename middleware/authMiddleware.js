@@ -1,26 +1,53 @@
 import jwt from "jsonwebtoken";
+import User from "../model/userModel.js";
 
-export const protect = (req, res, next) => {
-  const authHeader = req.headers.authorization || req.headers.Authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized: Token missing" });
+export const protect = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
   }
 
-  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ error: "Not authorized, no token provided" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    console.log("decoded =", decoded);
-    req.user = decoded.user; // or decoded directly, depending on how you signed the token
-    next();
-  } catch (error) {
-    console.error("Token error:", error);
 
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Token expired" });
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(403).json({ error: "User not found" });
     }
 
-    return res.status(403).json({ error: "Invalid token" });
+    req.user = user;
+    req.userRole = decoded.role; 
+
+    next();
+  } catch (err) {
+    console.error("JWT verification failed:", err);
+    return res.status(401).json({ error: "Token invalid or expired" });
   }
 };
+
+
+export const authorizeRoles = (...
+  
+  roles) => {
+  return (req,res,next)=>{
+    console.log("req.user", req.user);
+    console.log("roles", roles);
+    if(!(roles.includes(req.user.role))){
+      const err = new Error(`Access Denied, you are not allowed to access this resource!`);
+      err.status = 403;
+      return next(err);
+
+    }
+    next();
+  }
+}
