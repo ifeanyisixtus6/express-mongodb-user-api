@@ -3,9 +3,16 @@ import {getAllUsers, getUserById, updateUserById, deleteUserById } from '../cont
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
-router.get('/users', protect, authorizeRoles, getAllUsers);
-router.get('/users/:id', protect, getUserById);
-router.put('/users/:id', protect,  updateUserById);
+
+// Admin only
+router.get('/users', protect, authorizeRoles("admin"), getAllUsers);
 router.delete('/users/:id', protect, authorizeRoles("admin"), deleteUserById);
 
+// Self or admin 
+router.get('/users/:id', protect, getUserById);
+router.put('/users/:id', protect,  updateUserById);
+
+
 export default router;
+
+
