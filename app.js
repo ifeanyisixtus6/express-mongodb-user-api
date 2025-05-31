@@ -10,11 +10,11 @@ database();
 
 const app = express();
 app.use(express.json());
-app.use('/api/users', userRoutes);
-app.use('/api/blogs', blogRoutes);
+app.use('/api', userRoutes);
+app.use('/api', blogRoutes);
 app.use('/api', loginRoutes);
 
-// Error handling middleware (this MUST be the last thing)
+// Error handling middleware 
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
