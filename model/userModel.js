@@ -16,7 +16,8 @@ const UserSchema = new mongoose.Schema({
     unique: true
   },
 password: {
-    type: String
+    type: String,
+    required: true
   },
   role: {
     type: String,
@@ -36,7 +37,6 @@ UserSchema.pre("save", async function (next) {
   try{
     const hashedPassword = await bcrypt.hash(this.password, 10)
     this.password = hashedPassword;
-    console.log("hashedPassword",this.password)
     next(); 
   } catch(error){
     next(error)
