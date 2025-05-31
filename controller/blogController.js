@@ -1,7 +1,7 @@
 import Blog from "../model/blogModel.js"
 
 
-export const createPost = async (req, res) => {
+export const createBlog = async (req, res) => {
   try {
     const { title, content } = req.body;
 
@@ -20,7 +20,7 @@ export const createPost = async (req, res) => {
       author: req.user.id
     });
 
-    // Populate author info before sending response
+    // Populated author info before sending response
     const populatedBlog = await blog.populate("author", "firstName lastName email");
 
     return res.status(201).json({ message: "Blog created successfully", blog: populatedBlog });
@@ -29,7 +29,7 @@ export const createPost = async (req, res) => {
   }
 };
 
-export const getPosts = async (req, res) => {
+export const getBlogs = async (req, res) => {
   try {
     const allBlogs = await Blog.find().populate("author", "firstName lastName email");
     return res.status(200).json(allBlogs);
@@ -37,6 +37,17 @@ export const getPosts = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+
+export const getMyBlog = async (req, res) => {
+  try {
+    const blogs = await Blog.find({ author: req.user._id });
+    res.status(200).json(blogs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 export const getBlogById = async (req, res) => {
   try {
@@ -61,8 +72,8 @@ export const updateBlogById = async (req, res) => {
     }
 
     // Check if logged-in user is the author
-    if (blog.author.toString() !== req.user.id && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden: You are not the author" });
+    if (blog.author.toString() !== req.user.id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ Error: "Not authorized to update this blog" });
     }
 
     const { title, content } = req.body;
@@ -88,8 +99,8 @@ export const deleteBlogById = async (req, res) => {
     }
 
     // Check if logged-in user is the author
-    if (blog.author.toString() !== req.user.id && re.user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden: You are not the author" });
+    if (blog.author.toString() !== req.user.id.toString() && re.user.role !== "admin") {
+      return res.status(403).json({ error: "Not authorized to delete this blog" });
     }
 
     await blog.deleteOne();
