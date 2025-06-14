@@ -24,5 +24,24 @@ describe("createBlog", () => {
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({message: "Title And Content Are Mandatory"})
     })
+
+    it("it should return 400 if the title already exist", async () => {
+        req.body = { title: 'My Unique Blog Title',
+            content: 'seamfix nextgen',
+            author: 'Attah Ifeanyichukwu Sixtus'}
+
+
+            blogModel.findOne.mockResolvedValue({
+                title: req.body.title, 
+              });
+          
+  
+              await createBlog(req, res, next);
+          
+             
+              expect(res.status).toHaveBeenCalledWith(400);
+              expect(res.json).toHaveBeenCalledWith({ message: 'Title Already Exists' });
+
+    })
 })
 })
