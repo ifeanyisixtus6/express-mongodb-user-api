@@ -1,6 +1,6 @@
 import express from 'express';
 import database from "./database/database.js"
-import dotenv from'dotenv';
+import dotenv from 'dotenv';
 import userRoutes from './route/userRoute.js';
 import blogRoutes from "./route/blogRoute.js"
 import loginRoutes from "./route/authRoute.js"

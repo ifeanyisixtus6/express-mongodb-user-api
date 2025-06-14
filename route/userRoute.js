@@ -6,11 +6,12 @@ const router = express.Router();
 
 // Admin only
 router.get('/users', protect, authorizeRoles("admin"), getAllUsers);
-router.delete('/users/:id', protect, authorizeRoles("admin"), deleteUserById);
+
 
 // Self or admin 
 router.get('/users/:id', protect, getUserById);
 router.put('/users/:id', protect,  updateUserById);
+router.delete('/users/:id', protect, deleteUserById);
 
 
 export default router;
