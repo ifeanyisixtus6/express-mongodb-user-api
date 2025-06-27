@@ -79,7 +79,7 @@ export const updateBlogById = async (req, res) => {
     const { title, content } = req.body;
 
     if (title) blog.title = title;
-    if (content) blog.content = content;
+    if (content) blog.content = content;  
 
     const updatedBlog = await blog.save();
     const populatedBlog = await updatedBlog.populate("author", "firstName lastName email");
