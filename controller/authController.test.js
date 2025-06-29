@@ -1,7 +1,7 @@
 import authUser from "../model/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { register } from "./authController.js";
+import { register,login } from "./authController.js";
 
 
 
@@ -40,7 +40,7 @@ describe("register", () => {
   expect(res.json).toHaveBeenCalledWith({message: "Email already exists"})
    })
 
-   it("it should 201 and craete user successfully", async () => {
+   it("it should return 201 and crete user successfully", async () => {
 
     req.body = {
     firstName: "Attah",
@@ -73,5 +73,29 @@ describe("register", () => {
       },
     });
 })
+   })
+
+   describe("login", () => {
+    it("it should return 400 if Email or Password is missing", async () => {
+        req.body = {};
+
+        await login(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({message: "Email or Password is missing!"})
+
+    })
+    it("it should return 401 if Email or Password is invalid", async () => {
+        req.body = {email: "ify@yopmail.com", password: "12344rew"};
+        
+
+        authUser.findOne.mockResolvedValue(null);
+
+        await login(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({message: "Invalid email or password"})
+
+    })
    })
 })
