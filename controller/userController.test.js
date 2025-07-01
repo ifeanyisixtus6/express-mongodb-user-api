@@ -37,10 +37,9 @@ describe("userController", () => {
     ]
       UserModel.find.mockResolvedValue(mockUsers);
 
-      // Call the controller
+     
       await getAllUsers(req, res);
 
-      // Assert expectations
      expect(UserModel.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUsers);
@@ -49,13 +48,11 @@ describe("userController", () => {
 it("should return 500 and error message on failure", async () => {
       const error = new Error("Database failure");
 
-      // Simulate failure from UserModel.find
       UserModel.find.mockRejectedValue(error);
 
-      // Call the controller
       await getAllUsers(req, res);
 
-      // Assert expectations
+      
       expect(UserModel.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ message: "Database failure" });
@@ -100,7 +97,6 @@ it("should return 500 and error message on failure", async () => {
 
     UserModel.findById.mockResolvedValue(mockUsers)
 
-    // call the controller
     await getUserById(req, res);
 
     expect(UserModel.findById).toHaveBeenCalled();
