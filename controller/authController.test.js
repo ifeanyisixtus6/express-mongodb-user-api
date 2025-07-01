@@ -5,10 +5,23 @@ import { register,login } from "./authController.js";
 
 
 
-jest.mock("../model/userModel.js");
+jest.mock("../model/userModel.js", () => ({
+  __esModule: true,
+  default: {
+    findOne: jest.fn(),
+   create: jest.fn(), 
+  },
+}));
+
+jest.mock("bcrypt", () => ({
+  compare: jest.fn(), 
+}));
+
 jest.mock("jsonwebtoken", () => ({
   sign: jest.fn(),
-}));
+}))
+
+
 
 describe("authController", () => {
 let req, res, next;
@@ -40,7 +53,7 @@ describe("register", () => {
   expect(res.json).toHaveBeenCalledWith({message: "Email already exists"})
    })
 
-   it("it should return 201 and crete user successfully", async () => {
+   it("it should return 201 and create user successfully", async () => {
 
     req.body = {
     firstName: "Attah",
@@ -83,20 +96,61 @@ describe("register", () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({message: "Email or Password is missing!"})
-
     })
+
     it("it should return 401 if Email or Password is invalid", async () => {
-        req.body = {email: "ify@yopmail.com", password: "12344rew"};
-        
+      req.body = {email: "ify2@yopmail.com", password: "12345edrf"}
 
-        authUser.findOne.mockResolvedValue(null);
+      //const mockUser = {email: "ify2@yopmail.com"}
 
-        await login(req, res);
+      authUser.findOne.mockResolvedValue(null)
 
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({message: "Invalid email or password"})
+      await login(req, res)
+
+      expect(res.status).toHaveBeenCalledWith(401)
+      expect(res.json).toHaveBeenCalledWith({message: "Invalid email or password"})
 
     })
-   })
-})
+    
+it("should return 200 and accessToken if credentials are valid", async () => {
+
+        req = {
+  body: {
+    email: "ify@yopmail.com",
+    password: "123456",
+  },
+};
+
+    const mockUser = {
+      _id: "user123",
+      firstName: "Sixtus",
+      lastName: "Attah",
+      email: "ify@yopmail.com",
+      password: "hashedpw",
+      role: "user",
+    };
+
+
+    authUser.findOne.mockResolvedValue(mockUser);      
+    bcrypt.compare.mockResolvedValue(true);            
+    jwt.sign.mockReturnValue("mockedToken123");       
+
   
+    await login(req, res, next);
+
+   
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Login successful",
+      accessToken: "mockedToken123",
+      user: {
+        id: "user123",
+        firstName: "Sixtus",
+        lastName: "Attah",
+        email: "ify@yopmail.com",
+        role: "user",
+      },
+    });
+})
+})
+})
