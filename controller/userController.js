@@ -3,12 +3,14 @@ import User from '../model/userModel.js';
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select('-password');
     res.status(200).json(users);
   } catch (error) {
+    next(error)
     res.status(500).json({message: error["message"]});
-  }
+  
 };
+}
 
 export const getUserById = async (req, res) => {
   try {
@@ -17,10 +19,11 @@ export const getUserById = async (req, res) => {
     if (req.user.id !== req.params.id && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Not authorized' });
     }
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.status(200).json(user);
   } catch (error) {
+    next(error)
     res.status(500).json({message: error["message"]});
   }
 };
@@ -39,6 +42,7 @@ export const updateUserById = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.status(200).json({message: "User Updated successfully"})
   } catch (error) {
+    next(error)
     res.status(500).json({message: error["message"]});
   }
 };
@@ -52,7 +56,8 @@ export const deleteUserById = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
+    next(error)
     res.status(500).json({message: error["message"]});
   }
-};
+}
   
