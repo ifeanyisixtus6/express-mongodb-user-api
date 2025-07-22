@@ -1,6 +1,8 @@
 import express from 'express';
 import {getAllUsers, getUserById, updateUserById, deleteUserById } from '../controller/userController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
+import validateObjectId from '../middleware/userMiddleware.js';
+
 const router = express.Router();
 
 
@@ -9,8 +11,8 @@ router.get('/users', protect, authorizeRoles("admin"), getAllUsers);
 
 
 // Self or admin 
-router.get('/users/:id', protect, getUserById);
-router.put('/users/:id', protect,  updateUserById);
+router.get('/users/:id', protect, validateObjectId, getUserById);
+router.put('/users/:id', protect, validateObjectId,  updateUserById);
 router.delete('/users/:id', protect, deleteUserById);
 
 
