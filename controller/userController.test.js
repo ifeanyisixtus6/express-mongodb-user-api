@@ -23,15 +23,15 @@ describe("userController", () => {
     it("should return all users with status 200", async () => {
       const mockUsers = [
         {
-          firstName: "test",
-          lastName: "User",
-          email: "test@yopmail.com",
+          firstName: "ifeanyichukwu",
+          lastName: "Attah",
+          email: "ify@yopmail.com",
           role: "user",
         },
         {
-          firstName: "admin",
-          lastName: "One",
-          email: "admin@yopmail.com",
+          firstName: "ugochi",
+          lastName: "okolie",
+          email: "ugochi@yopmail.com",
           role: "admin",
         },
     ]
@@ -118,7 +118,7 @@ it("should return 500 and error message on failure", async () => {
 
   describe("updateUserById", () => {
     it("it should return 403 if the user is not admin and trying to access another user's data", async () => {
-      req.user = {id: "923", role: "user"};
+      req.user = {id: "12", role: "user"};
       req.params.id = "123"
 
       await updateUserById(req, res);
@@ -174,8 +174,8 @@ it("should return 500 and error message on failure", async () => {
 
   describe("deleteUserById", () => {
     it("it should return 403 if a user is not an admin and trying to access another user's data", async () => {
-      req.user = {id: "234", role: "user"};
-      req.params.id = "345";
+      req.user = {id: "5", role: "user"};
+      req.params.id = "3";
 
       await deleteUserById(req, res);
 
