@@ -21,7 +21,7 @@ export const createBlog = async (req, res) => {
     });
 
     // Populated author info before sending response
-    const populatedBlog = await blog.populate("author", "firstName lastName email");
+    const populatedBlog = await blog.populate("author", "firstName lastName email role");
 
     return res.status(201).json({ message: "Blog created successfully", blog: populatedBlog });
   } catch (error) {
@@ -31,7 +31,7 @@ export const createBlog = async (req, res) => {
 
 export const getBlogs = async (req, res) => {
   try {
-    const allBlogs = await Blog.find().populate("author", "firstName lastName email");
+    const allBlogs = await Blog.find().populate("author", "firstName lastName email role");
     return res.status(200).json({allBlogs});
   } catch (error) {
     return res.status(500).json({ message: error["message"]});
@@ -51,7 +51,7 @@ export const getMyBlog = async (req, res) => {
 
 export const getBlogById = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id).populate("author", "firstName lastName email");
+    const blog = await Blog.findById(req.params.id).populate("author", "firstName lastName email role");
 
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -82,7 +82,7 @@ export const updateBlogById = async (req, res) => {
     if (content) blog.content = content;  
 
     const updatedBlog = await blog.save();
-    const populatedBlog = await updatedBlog.populate("author", "firstName lastName email");
+    const populatedBlog = await updatedBlog.populate("author", "firstName lastName email role");
 
     return res.status(200).json({ message: "Blog updated successfully", blog: populatedBlog });
   } catch (error) {
