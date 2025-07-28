@@ -1,8 +1,14 @@
-import { deleteUserById, getAllUsers, getUserById, updateUserById } from "./userController.js";
+import {
+  getAllUsers,
+  getUserById,
+  updateUserById,
+  softDeleteUser,
+   deleteUserById,
+} from "./userController.js";
+
 import UserModel from "../model/userModel.js";
 
-
-// Mock the UserModel module
+// Mock UserModel
 jest.mock("../model/userModel.js");
 
 describe("userController", () => {
@@ -22,211 +28,235 @@ describe("userController", () => {
   describe("getAllUsers", () => {
     it("should return all users with status 200", async () => {
       const mockUsers = [
-        {
-          firstName: "ifeanyichukwu",
-          lastName: "Attah",
-          email: "ify@yopmail.com",
-          role: "user",
-        },
-        {
-          firstName: "ugochi",
-          lastName: "okolie",
-          email: "ugochi@yopmail.com",
-          role: "admin",
-        },
-    ]
-      UserModel.find.mockResolvedValue(mockUsers);
+        { firstName: "ifeanyichukwu", email: "ify@yopmail.com" },
+        { firstName: "ugochi", email: "ugochi@yopmail.com" },
+      ];
+      UserModel.find.mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUsers)
+      });
 
-     
-      await getAllUsers(req, res);
+      await getAllUsers(req, res, next);
 
-     expect(UserModel.find).toHaveBeenCalled();
+      expect(UserModel.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUsers);
     });
 
-it("should return 500 and error message on failure", async () => {
+    it("should call next with error on failure", async () => {
       const error = new Error("Database failure");
+      UserModel.find.mockReturnValue({
+        select: jest.fn().mockRejectedValue(error)
+      });
 
-      UserModel.find.mockRejectedValue(error);
+      await getAllUsers(req, res, next);
 
-      await getAllUsers(req, res);
-
-      
-      expect(UserModel.find).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ message: "Database failure" });
+      expect(next).toHaveBeenCalledWith(error);
     });
   });
 
+
   describe("getUserById", () => {
-    it("should return 403 if user is not admin and trying to access another user's data", async () => {
-      req.user = { id: "123", role: "user"};
-      req.params.id = "143";
-  
-      await getUserById(req, res);
-  
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({error: "Not authorized"})
-    })
-  })
+    it("should return 403 if unauthorized", async () => {
+      req.user = { id: "123", role: "user" };
+      req.params.id = "999";
 
-  it("it should return 404 if user is not found", async () => {
-    req.user = {}
-
-    await getUserById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({error: "User not found"})
-  })
-
-  it("it should return 200 if there is a user",  async () => {
-    const mockUsers = [{
-      firstName: "attah",
-      lastName: "sixtus",
-      email: "attah@yopmail.com",
-      role: "user"
-    },
-  {
-    firstName: "attah",
-    lastName: "sixtus",
-    email: "attah@yopmail.com",
-    role: "admin"
-  }
-  ]
-
-    UserModel.findById.mockResolvedValue(mockUsers)
-
-    await getUserById(req, res);
-
-    expect(UserModel.findById).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(200)
-    expect(res.json).toHaveBeenCalledWith(mockUsers)
-  })
-
-  it("it should return 500 and error message on failure", async () => {
-    const error = new Error("Database failure")
-
-    UserModel.findById.mockRejectedValue(error);
-
-    await getUserById(req, res);
-
-    expect(UserModel.findById).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({message: "Database failure"})
-  })
-
-  describe("updateUserById", () => {
-    it("it should return 403 if the user is not admin and trying to access another user's data", async () => {
-      req.user = {id: "12", role: "user"};
-      req.params.id = "123"
-
-      await updateUserById(req, res);
+      await getUserById(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({message: "Unauthorized"})
-    })
-  })
+      expect(res.json).toHaveBeenCalledWith({ error: "Not authorized" });
+    });
 
-  it("it should return 404 if the user is not found", async () => {
-    req.user = {};
+    it("should return 404 if user not found", async () => {
+      req.user = { id: "123", role: "user" };
+      req.params.id = "123";
+      UserModel.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue(null)
+      });
 
-    await updateUserById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({message: "User not found"})
-  })
-
-  it("it should return 200 if there is a user", async () => {
-    const mockUsers = [{
-      firstName: "ifeanyi",
-      lastName: "Attah",
-      email: "sixtusyop@gmail.com",
-      role: "user"
-    },
-    {
-      firstName: "peter",
-      lastName: "okolie",
-      email: "ifyyop@gmail.com",
-      role: "admin"
-    }
-  ]
-    UserModel.findByIdAndUpdate.mockResolvedValue(mockUsers);
-
-    await updateUserById(req, res)
-
-    expect(UserModel.findByIdAndUpdate).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({message: "User Updated successfully"})
-  })
-
-  it("it should return 500 and error mesage on failure", async () => {
-    const error = new Error("Database failure");
-
-    UserModel.findByIdAndUpdate.mockRejectedValue(error)
-
-    await updateUserById(req, res);
-
-    expect(UserModel.findByIdAndUpdate).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({message: "Database failure"})
-  })
-
-  describe("deleteUserById", () => {
-    it("it should return 403 if a user is not an admin and trying to access another user's data", async () => {
-      req.user = {id: "5", role: "user"};
-      req.params.id = "3";
-
-      await deleteUserById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({message: "Unauthorized"})
-    })
-
-    it("it should return 404 if the user is not found", async () => {
-      req.user = {};
-
-      await deleteUserById(req, res);
+      await getUserById(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({message: "User not found"})
+      expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+    });
 
-   })
-   
-   it("it should return 200 if a user is found", async () => {
-    const mockUsers = [{
-      firstName: "ugochi",
-      lastName: "irene",
-      email: "ugochiyop@email.com",
-      role: "user",
-    },
-  {
-    firstName: "nonso",
-    lastName: "chris",
-    email: "chrisyop@gmail.com",
-    role: "admin"
-  }
-  ]
+    it("should return user if found", async () => {
+      const mockUser = { firstName: "Attah", email: "attah@yopmail.com" };
+      req.user = { id: "123", role: "user" };
+      req.params.id = "123";
+      UserModel.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser)
+      });
 
-  UserModel.findByIdAndDelete.mockResolvedValue(mockUsers);
+      await getUserById(req, res, next);
 
-  await deleteUserById(req, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockUser);
+    });
 
-  expect(UserModel.findByIdAndDelete).toHaveBeenCalled()
-  expect(res.status).toHaveBeenCalledWith(200);
-  expect(res.json).toHaveBeenCalledWith({message: "User deleted successfully"})
-   })
+    it("should call next on failure", async () => {
+      const error = new Error("Database failure");
+      req.user = { id: "123", role: "user" };
+      req.params.id = "123";
+      UserModel.findById.mockReturnValue({
+        select: jest.fn().mockRejectedValue(error)
+      });
 
-   it("it should return 500 and error message on failure", async () => {
-    const error = new Error ("Database failure");
-     
-    UserModel.findByIdAndDelete.mockRejectedValue(error);
+      await getUserById(req, res, next);
 
-    await deleteUserById(req, res);
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
 
-    expect(UserModel.findByIdAndDelete).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({message: "Database failure"})
-   })
-    })
-  })
+  describe("updateUserById", () => {
+    it("should return 403 if unauthorized", async () => {
+      req.user = { id: "12", role: "user" };
+      req.params.id = "123";
+
+      await updateUserById(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+    });
+
+    it("should return 404 if user not found", async () => {
+      req.user = { id: "123", role: "user" };
+      req.params.id = "123";
+      UserModel.findById.mockResolvedValue(null);
+
+      await updateUserById(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+    });
+
+    it("should update and return user", async () => {
+      const mockUser = {
+        _id: "123",
+        email: "old@email.com",
+        isDeleted: false,
+      };
+      const updatedUser = { ...mockUser, firstName: "Updated" };
+
+      req.user = { id: "123", role: "user" };
+      req.params.id = "123";
+      req.body = { firstName: "Updated" };
+
+      UserModel.findById.mockResolvedValue(mockUser);
+      UserModel.findOne.mockResolvedValue(null); 
+      UserModel.findByIdAndUpdate.mockResolvedValue(updatedUser);
+
+      await updateUserById(req, res, next);
+
+      expect(UserModel.findByIdAndUpdate).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "User Updated successfully",
+        data: updatedUser,
+      });
+    });
+
+    it("should call next on failure", async () => {
+      const error = new Error("Database failure");
+      req.user = { id: "123", role: "user" };
+      req.params.id = "123";
+      UserModel.findById.mockRejectedValue(error);
+
+      await updateUserById(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+
+describe("softDeleteUser", () => {
+  it('should soft-delete user and return success message', async () => {
+    const mockUser = { _id:122, isDeleted: true };
+    
+    req.params.id = 122;
+    UserModel.findByIdAndUpdate.mockResolvedValue(mockUser);
+    
+    await softDeleteUser(req, res, next);
+    
+    expect(UserModel.findByIdAndUpdate).toHaveBeenCalledWith(122, { isDeleted: true }, { new: true });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'User soft-deleted successfully' });
+  });
+  
+  it('should return 404 if user not found', async () => {
+    req.params.id = 'nonexistent122';
+    UserModel.findByIdAndUpdate.mockResolvedValue(null);
+    
+    await softDeleteUser(req, res, next);
+    
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
+  });
+  
+  it('should call next with error on failure', async () => {
+    const error = new Error('Database error');
+    req.params.id = 122;
+    UserModel.findByIdAndUpdate.mockRejectedValue(error);
+    
+    await softDeleteUser(req, res, next);
+    
+    expect(next).toHaveBeenCalledWith(error);
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
+  });
+});
+
+  describe("deleteUserById", () => {
+    it("should return 403 if unauthorized", async () => {
+      req.user = { id: "5", role: "user" };
+      req.params.id = "3";
+
+      await deleteUserById(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+    });
+
+    it("should return 404 if user not found", async () => {
+      req.user = { id: "3", role: "user" };
+      req.params.id = "3";
+      UserModel.findByIdAndDelete.mockResolvedValue(null);
+
+      await deleteUserById(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+    });
+
+    it("should delete user", async () => {
+      const mockUser = {
+        _id: "3",
+        firstName: "Ugochi",
+        email: "ugo@yopmail.com",
+      };
+
+      req.user = { id: "3", role: "user" };
+      req.params.id = "3";
+
+      UserModel.findByIdAndDelete.mockResolvedValue(mockUser);
+
+      await deleteUserById(req, res, next);
+
+      expect(UserModel.findByIdAndDelete).toHaveBeenCalledWith("3");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "User deleted successfully",
+      });
+    });
+
+    it("should call next on error", async () => {
+      const error = new Error("Delete failed");
+      req.user = { id: "3", role: "user" };
+      req.params.id = "3";
+      UserModel.findByIdAndDelete.mockRejectedValue(error);
+
+      await deleteUserById(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+});
