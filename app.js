@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import userRoutes from './route/userRoute.js';
 import blogRoutes from "./route/blogRoute.js"
 import loginRoutes from "./route/authRoute.js"
-import validateObjectId from './middleware/userMiddleware.js';
+
 
 dotenv.config();
 database();
@@ -14,7 +14,14 @@ app.use(express.json());
 app.use('/api', userRoutes);
 app.use('/api', blogRoutes);
 app.use('/api', loginRoutes);
-app.use(validateObjectId)
+
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  res.status(status).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+  });
+});
 
 const PORT = process.env.PORT || 3000;
 
