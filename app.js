@@ -15,6 +15,14 @@ app.use('/api', userRoutes);
 app.use('/api', blogRoutes);
 app.use('/api', loginRoutes);
 
+// 404 handler for unmatched routes
+app.use((req, res, next) => {
+  res.status(404).json({
+    message: "Route not found"
+  });
+});
+
+
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   res.status(status).json({
