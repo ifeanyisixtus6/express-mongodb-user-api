@@ -39,7 +39,7 @@ describe("register", () => {
     await register(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({message: "All fields are mandatory"})
+    expect(res.json).toHaveBeenCalledWith({error: "All fields are mandatory"})
    })
 
    it("it should return 409 if email is already exists", async () => {
@@ -50,7 +50,7 @@ describe("register", () => {
   await register(req, res);
 
   expect(res.status).toHaveBeenCalledWith(409);
-  expect(res.json).toHaveBeenCalledWith({message: "Email already exists"})
+  expect(res.json).toHaveBeenCalledWith({error: "Email already exists"})
    })
 
    it("it should return 201 and create user successfully", async () => {
@@ -95,7 +95,7 @@ describe("register", () => {
         await login(req, res);
 
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({message: "Email or Password is missing!"})
+        expect(res.json).toHaveBeenCalledWith({error: "Email or Password is missing!"})
     })
 
     it("it should return 401 if Email or Password is invalid", async () => {
@@ -108,7 +108,7 @@ describe("register", () => {
       await login(req, res)
 
       expect(res.status).toHaveBeenCalledWith(401)
-      expect(res.json).toHaveBeenCalledWith({message: "Invalid email or password"})
+      expect(res.json).toHaveBeenCalledWith({error: "Invalid email or password"})
 
     })
     
